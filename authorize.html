@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TikTok認証 - Neil Harness</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 48px auto; padding: 0 20px; line-height: 1.6; }
+    label { display: block; font-weight: 700; margin: 24px 0 8px; }
+    input { box-sizing: border-box; width: 100%; padding: 12px; }
+    button { margin-top: 16px; padding: 12px 20px; cursor: pointer; }
+    .note { color: #555; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>TikTok認証</h1>
+    <p>Neil Lives Here AnalyticsをTikTokアカウントに接続します。</p>
+    <label for="client-key">Client key</label>
+    <input id="client-key" autocomplete="off" spellcheck="false">
+    <button id="authorize" type="button">TikTokで認証する</button>
+    <p class="note">Client keyはこのブラウザ内で認証URLの作成にだけ使われ、保存・送信されません。Client secretは入力しないでください。</p>
+  </main>
+  <script>
+    const redirectUri = 'https://sogo0505.github.io/test1/callback.html';
+    document.getElementById('authorize').addEventListener('click', () => {
+      const clientKey = document.getElementById('client-key').value.trim();
+      if (!clientKey) {
+        alert('Client keyを入力してください。');
+        return;
+      }
+      const bytes = new Uint8Array(24);
+      window.crypto.getRandomValues(bytes);
+      const state = Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+      sessionStorage.setItem('tiktok_oauth_state', state);
+      const params = new URLSearchParams({
+        client_key: clientKey,
+        response_type: 'code',
+        scope: 'user.info.basic,video.list',
+        redirect_uri: redirectUri,
+        state,
+        disable_auto_auth: '1'
+      });
+      window.location.assign('https://www.tiktok.com/v2/auth/authorize/?' + params.toString());
+    });
+  </script>
+</body>
+</html>
