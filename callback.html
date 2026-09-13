@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TikTok authorization - Neil Harness</title>
+</head>
+<body>
+  <main>
+    <h1>TikTok authorization</h1>
+    <p id="status">Processing the authorization response…</p>
+    <p>This page does not store or transmit the authorization response.</p>
+  </main>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const status = document.getElementById('status');
+    if (params.get('error')) {
+      status.textContent = 'Authorization failed: ' + params.get('error');
+    } else if (params.get('code')) {
+      status.textContent = 'Authorization received. Return to the setup instructions.';
+    } else {
+      status.textContent = 'No authorization response was found.';
+    }
+  </script>
+</body>
+</html>
