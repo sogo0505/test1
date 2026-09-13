@@ -1,26 +1,55 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>TikTok authorization - Neil Harness</title>
+  <title>TikTok認証結果 - Neil Harness</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 680px; margin: 48px auto; padding: 0 20px; line-height: 1.6; }
+    textarea { box-sizing: border-box; width: 100%; min-height: 100px; padding: 12px; }
+    button { margin-top: 12px; padding: 12px 20px; cursor: pointer; }
+    .error { color: #b00020; }
+  </style>
 </head>
 <body>
   <main>
-    <h1>TikTok authorization</h1>
-    <p id="status">Processing the authorization response…</p>
-    <p>This page does not store or transmit the authorization response.</p>
+    <h1>TikTok認証結果</h1>
+    <p id="status">認証結果を確認しています…</p>
+    <section id="success" hidden>
+      <label for="code"><strong>Authorization code</strong></label>
+      <textarea id="code" readonly></textarea>
+      <button id="copy" type="button">コードをコピー</button>
+      <p>このコードは短時間だけ有効です。チャットには貼らないでください。</p>
+    </section>
   </main>
   <script>
     const params = new URLSearchParams(window.location.search);
     const status = document.getElementById('status');
-    if (params.get('error')) {
-      status.textContent = 'Authorization failed: ' + params.get('error');
-    } else if (params.get('code')) {
-      status.textContent = 'Authorization received. Return to the setup instructions.';
+    const expectedState = sessionStorage.getItem('tiktok_oauth_state');
+    const returnedState = params.get('state');
+    const code = params.get('code');
+    const error = params.get('error');
+
+    if (error) {
+      status.className = 'error';
+      status.textContent = '認証に失敗しました: ' + (params.get('error_description') || error);
+    } else if (!expectedState || !returnedState || expectedState !== returnedState) {
+      status.className = 'error';
+      status.textContent = '安全確認用のstateが一致しません。認証ページからやり直してください。';
+    } else if (!code) {
+      status.className = 'error';
+      status.textContent = 'Authorization codeが見つかりません。';
     } else {
-      status.textContent = 'No authorization response was found.';
+      sessionStorage.removeItem('tiktok_oauth_state');
+      status.textContent = '認証できました。下のコードをコピーしてください。';
+      document.getElementById('success').hidden = false;
+      document.getElementById('code').value = code;
     }
+
+    document.getElementById('copy')?.addEventListener('click', async () => {
+      await navigator.clipboard.writeText(document.getElementById('code').value);
+      document.getElementById('copy').textContent = 'コピーしました';
+    });
   </script>
 </body>
 </html>
